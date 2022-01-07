@@ -12,6 +12,10 @@ class URPRequestException(Exception):
         super().__init__(msg)
         self.msg = msg
 
+class XkNotOpenException(Exception):
+    def __init__(self):
+        super().__init__('非选课阶段不允许选课')
+
 
 class URP:
 
@@ -69,12 +73,14 @@ class URP:
         elif '你已经选择了' in resp:
             return False, '你已经选中了此门课程'
         else:
-            return False, '未知返回值！'
+            return False, '未知返回值!'
 
     def search_action(self, kc_id: str) -> List[Tuple]:
         url = f'http://{self.host}/xkAction.do'
         try:
             pre_action = self.sess.get(url)
+            if '非选课阶段不允许选课' in pre_action.text:
+                raise XkNotOpenException()
             pre_html = etree.HTML(pre_action.text)
             fajhh = pre_html.xpath('//input[@type="radio"]')[0].attrib['value']
 
@@ -124,5 +130,5 @@ class URP:
                                     'preActionType': '3'},
                                 timeout=5)
         except httpx.HTTPError:
-            raise URPRequestException('执行选课操作时发生错误')
+            raise URPRequestException('执行选课操作时发生网络错误')
         return self._check_result(req.text)
