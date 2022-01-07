@@ -36,7 +36,7 @@ class URP:
         try:
             captcha = self.sess.get(f'http://{self.host}/validateCodeAction.do')
         except httpx.HTTPError:
-            raise URPRequestException('获取验证码时发生错误')
+            raise URPRequestException('获取验证码时发生网络错误')
 
         try:
             login_result = self.sess.post(f'http://{self.host}/loginAction.do',
@@ -51,7 +51,7 @@ class URP:
                                                 'mm': self.password,
                                                 'v_yzm': decaptcha(captcha.content)})
         except httpx.HTTPError:
-            raise URPRequestException('登录时发生错误')
+            raise URPRequestException('登录时发生网络错误')
         return '学分制综合教务' in login_result.text
 
     @staticmethod

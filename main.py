@@ -45,13 +45,13 @@ def choose_best_host():
 
 def input_account():
     while True:
-        username = input('请输入用户名:\t')
+        username = input('请输入用户名:\t').strip()
         if username:
             break
         print('用户名不得为空')
 
     while True:
-        password = input('请输入密码:\t')
+        password = input('请输入密码:\t').strip()
         if password:
             break
         print('密码不得为空')
@@ -60,8 +60,18 @@ def input_account():
 
 def pre_selection_mode():
     print('======== 预选模式 ========')
-    kc_id = input('请输入课程号:\t').strip()
-    kc_no = input('请输入课序号:\t').strip()
+    while True:
+        kc_id = input('请输入课程号:\t').strip()
+        if kc_id:
+            break
+        print('课程号不得为空')
+
+    while True:
+        kc_no = input('请输入课序号:\t').strip()
+        if kc_no:
+            break
+        print('课序号不得为空')
+
     return kc_id, kc_no, None
 
 
@@ -125,12 +135,12 @@ def loop_xk(urp, kc_no, kc_id, kc_name="未知"):
 
         system('cls')
         print('======== 抢课信息 ========')
-        print(f'课程号:\t{kc_id}')
-        print(f'课序号:\t{kc_no}')
-        print(f'课程名:\t{kc_name if kc_name else "未知"}')
+        print(f'课程号: \t{kc_id}')
+        print(f'课序号: \t{kc_no}')
+        print(f'课程名: \t{kc_name if kc_name else "未知"}')
         print(f'抢课次数:\t{cnt}')
         print(f'抢课状态:\t{status}')
-        print('====== Ctrl+C 退出 ======')
+        print('======= Ctrl+C退出 =======')
 
         if result:
             return
@@ -147,7 +157,7 @@ def loop_xk(urp, kc_no, kc_id, kc_name="未知"):
         elif status == '未检测到待选课程':
             return 
         elif exception is not None:
-            traceback.print_last()
+            print(traceback.format_exc())
         
         sleep(2)  
 
@@ -171,11 +181,15 @@ try:
 
         # 登录
         urp = URP(username, password, best_host)
-        if urp.login():
-            print('登录成功')
-            sleep(1)
-            break
-        print('登录失败，请检查用户名或密码是否正确')
+        try:
+            if urp.login():
+                print('登录成功')
+                sleep(1)
+                break
+        except URPRequestException as e:
+            print(f'登陆时发生错误({e}), 请尝试重新运行程序')
+            exit(1)
+        print('登录失败, 请检查用户名或密码是否正确')
         sleep(3)
 
     # 选择工作模式
@@ -191,11 +205,11 @@ try:
             break
         elif mode == '2':
             system('cls')
-            kc_id, kc_no, kc_name = pre_selection_mode(urp)
+            kc_id, kc_no, kc_name = pre_selection_mode()
             break
         else:
             print('输入的模式错误')
-            time(3)
+            sleep(3)
             system('cls')
             continue
     
@@ -206,8 +220,7 @@ try:
 except KeyboardInterrupt:
     print('用户取消操作')
 except Exception:
-    traceback.print_last()
-    print('程序在运行时发生错误，建议你查看README以寻找解决方案\nhttps://github.com/TerraceCN/YZULessonHunter')
+    print(traceback.format_exc())
 finally:
     system('pause')
     exit(1)
