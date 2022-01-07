@@ -115,7 +115,7 @@ try:
 except KeyboardInterrupt:
     print('程序正在退出')
 except Exception as e:
-    traceback.print_exc()
+    print(traceback.format_exc())
     print('程序在运行时发生错误，建议你查看README以寻找解决方案\nhttps://github.com/TerraceCN/YZULessonHunter')
 finally:
     os.system('pause')
