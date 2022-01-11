@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from sys import exit
 from os import system
 from time import time, sleep
 import traceback
@@ -93,7 +94,7 @@ def block_mode(urp):
         pre_sel = input('选课尚未开始，是否进入预选模式? (Y/n):')
         if pre_sel == 'y' or pre_sel == 'Y':
             system('cls')
-            return pre_selection_mode(urp)
+            return pre_selection_mode()
         else:
             print('操作取消, 退出抢课脚本')
             system('pause')
@@ -118,23 +119,38 @@ def block_mode(urp):
     return kc_id, kc_no, kc_name
 
 
-def loop_xk(urp, kc_no, kc_id, kc_name="未知"):
+def loop_xk(urp, kc_no, kc_id, host, kc_name="未知"):
     cnt = 0
+    searched = False
     while True:
         cnt += 1
+
+        if not searched:
+            try:
+                urp.search_action(kc_id)
+                searched = True
+            except XkNotOpenException:
+                continue
 
         try:
             result, status = urp.xk_action(kc_id, kc_no)
             exception = None
+        except XkNotOpenException as e:
+            result = False
+            status = '选课系统尚未开启'
+            exception = None
         except URPRequestException as e:
+            result = False
             status = e
             exception = e
         except Exception as e:
+            result = False
             status = e
             exception = e
 
         system('cls')
         print('======== 抢课信息 ========')
+        print(f'服务器: \t{host}')
         print(f'课程号: \t{kc_id}')
         print(f'课序号: \t{kc_no}')
         print(f'课程名: \t{kc_name if kc_name else "未知"}')
@@ -145,10 +161,11 @@ def loop_xk(urp, kc_no, kc_id, kc_name="未知"):
         if result:
             return
         elif status == '登录失效':
-            print(f'登录失效, 正在重新登录 <{cnt}>')
+            print(f'登录失效, 正在重新登录')
             while not urp.login():
                 print('重新登录失败, 正在重试')
             print('重新登录成功')
+            searched = False
             continue
         elif status == '你已经选中了此门课程':
             return 
@@ -215,7 +232,7 @@ try:
     
     # 抢课
     system('cls')
-    loop_xk(urp, kc_no, kc_id, kc_name)
+    loop_xk(urp, kc_no, kc_id, best_host, kc_name)
 
 except KeyboardInterrupt:
     print('用户取消操作')

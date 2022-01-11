@@ -49,7 +49,8 @@ class URP:
                                                 'dzslh': '',
                                                 'zjh': self.username,
                                                 'mm': self.password,
-                                                'v_yzm': decaptcha(captcha.content)})
+                                                'v_yzm': decaptcha(captcha.content)},
+                                          timeout=20)
         except httpx.HTTPError:
             raise URPRequestException('登录时发生网络错误')
         return '学分制综合教务' in login_result.text
@@ -78,7 +79,7 @@ class URP:
     def search_action(self, kc_id: str) -> List[Tuple]:
         url = f'http://{self.host}/xkAction.do'
         try:
-            pre_action = self.sess.get(url)
+            pre_action = self.sess.get(url, timeout=20)
             if '非选课阶段不允许选课' in pre_action.text:
                 raise XkNotOpenException()
             pre_html = etree.HTML(pre_action.text)
@@ -88,17 +89,21 @@ class URP:
                 url,
                 params={'actionType': '-1',
                         'fajhh': fajhh},
-                headers={'Referer': str(pre_action.url)})
+                headers={'Referer': str(pre_action.url)},
+                timeout=20)
             
             search_result = self.sess.post(
                 url,
                 data={'kch': kc_id,
-                    'kcm': '',
-                    'actionType': '3',
-                    'pageNumber': '-1'},
-                headers={'Referer': str(pre_action.url)})
+                      'kcm': '',
+                      'actionType': '3',
+                      'pageNumber': '-1'},
+                headers={'Referer': str(pre_action.url)},
+                timeout=20)
         except httpx.HTTPError:
             raise URPRequestException('搜索课程时发生错误')
+        except IndexError:
+            raise URPRequestException('方案选择时发生错误')
         
         search_html = etree.HTML(search_result.text)
         trs = search_html.xpath('//table[@class="displayTag"]/tr')
