@@ -70,7 +70,7 @@ class URP:
         elif '500 Servlet Exception' in resp:
             return False, '服务器返回500错误'
         elif '校任选课开课信息!' in resp:
-            return False, '未检测到待选课程'
+            return False, '未检测到待选课程或您已经选中该课程'
         elif '你已经选择了' in resp:
             return False, '你已经选中了此门课程'
         else:
