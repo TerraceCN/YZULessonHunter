@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import platform
 from sys import exit
 from os import system
 from time import time, sleep
@@ -9,6 +10,12 @@ from prettytable import PrettyTable
 
 from api import *
 
+
+def clean_terminal():
+    if platform.system() == 'Windows':
+        system('cls')
+    else:
+        system('clear')
 
 def choose_best_host():
     hosts = ['jw1.yzu.edu.cn', 'jw2.yzu.edu.cn', 'jw3.yzu.edu.cn']
@@ -79,7 +86,7 @@ def pre_selection_mode():
 def block_mode(urp):
     try:
         while True:
-            system('cls')
+            clean_terminal()
             print('======== 截胡模式 ========')
             kc_id = input('请输入课程号:\t').strip()
             print('正在搜索课程')
@@ -93,7 +100,7 @@ def block_mode(urp):
     except XkNotOpenException:
         pre_sel = input('选课尚未开始，是否进入预选模式? (Y/n):')
         if pre_sel == 'y' or pre_sel == 'Y':
-            system('cls')
+            clean_terminal()
             return pre_selection_mode()
         else:
             print('操作取消, 退出抢课脚本')
@@ -148,7 +155,7 @@ def loop_xk(urp, kc_no, kc_id, host, kc_name="未知"):
             status = e
             exception = e
 
-        system('cls')
+        clean_terminal()
         print('======== 抢课信息 ========')
         print(f'服务器: \t{host}')
         print(f'课程号: \t{kc_id}')
@@ -180,7 +187,7 @@ def loop_xk(urp, kc_no, kc_id, host, kc_name="未知"):
 
 
 try:
-    system('cls')
+    clean_terminal()
     # 选择最优服务器
     best_host = choose_best_host()
     if best_host is None:
@@ -192,7 +199,7 @@ try:
 
 
     while True:
-        system('cls')
+        clean_terminal()
         # 输入用户名密码
         username, password = input_account()
 
@@ -210,28 +217,28 @@ try:
         sleep(3)
 
     # 选择工作模式
-    system('cls')
+    clean_terminal()
     while True:
         print('工作模式:')
         print('1. 截胡模式 (选课已开放, 但是无课余量, 可在他人退课后选课)')
         print('2. 预抢模式 (选课尚未开放, 可预先设置要抢的课程, 并在选课开放后选课)')
         mode = input('请选择工作模式[1/2]:\t')
         if mode == '1':
-            system('cls')
+            clean_terminal()
             kc_id, kc_no, kc_name = block_mode(urp)
             break
         elif mode == '2':
-            system('cls')
+            clean_terminal()
             kc_id, kc_no, kc_name = pre_selection_mode()
             break
         else:
             print('输入的模式错误')
             sleep(3)
-            system('cls')
+            clean_terminal()
             continue
     
     # 抢课
-    system('cls')
+    clean_terminal()
     loop_xk(urp, kc_no, kc_id, best_host, kc_name)
 
 except KeyboardInterrupt:
@@ -239,5 +246,8 @@ except KeyboardInterrupt:
 except Exception:
     print(traceback.format_exc())
 finally:
-    system('pause')
+    if platform.system() == 'Windows':
+        system('pause')
+    else:
+        input('press any key to continue...')
     exit(1)
